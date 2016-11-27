@@ -1,0 +1,26 @@
+{
+  "name": "image-color-diversity",
+  "version": "0.0.2",
+  "description": "Calculates color diversity",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Stefan-Gabriel Muscalu <stefan.gabriel.muscalu@gmail.com> (http://my.corneroftheinternet.rocks/)",
+  "license": "MIT",
+  "dependencies": {
+    "minimist": "^1.2.0",
+    "sharp": "^0.16.2"
+  },
+  "bin": {
+    "entropy": "index.js"
+  },
+  "repository": {
+    "url": "https://github.com/legraphista/image-entropy"
+  },
+  "bugs": {
+    "url": "https://github.com/legraphista/image-entropy/issues"
+  },
+  "keywords": [
+    "image",
+    "entropy"
+  ]
+}
