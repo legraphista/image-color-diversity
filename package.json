@@ -1,6 +1,6 @@
 {
   "name": "image-color-diversity",
-  "version": "0.0.2",
+  "version": "1.0.1",
   "description": "Calculates color diversity",
   "main": "index.js",
   "scripts": {},
@@ -11,16 +11,18 @@
     "sharp": "^0.16.2"
   },
   "bin": {
-    "entropy": "index.js"
+    "diversity": "index.js"
   },
   "repository": {
-    "url": "https://github.com/legraphista/image-entropy"
+    "url": "https://github.com/legraphista/image-color-diversity"
   },
   "bugs": {
-    "url": "https://github.com/legraphista/image-entropy/issues"
+    "url": "https://github.com/legraphista/image-color-diversity/issues"
   },
   "keywords": [
     "image",
-    "entropy"
+    "histogram",
+    "color",
+    "diversity"
   ]
 }

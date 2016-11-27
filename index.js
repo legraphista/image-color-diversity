@@ -2,8 +2,8 @@
 const TIMING = !!process.env.TIMING;
 const args = require('minimist')(process.argv.slice(2));
 const file = args._[0];
-const contrastConstant = args.c || 120;
-const outputFile = args.o;
+const contrastConstant = args.c || 255;
+const humanColors = args.h;
 const sharp = require('sharp');
 
 if (!file) {
@@ -43,7 +43,13 @@ sharp(file)
         data[colorPixelPointer + 1] = truncate((F * (data[colorPixelPointer + 1] - 128 ) + 128) | 0); // g
         data[colorPixelPointer + 2] = truncate((F * (data[colorPixelPointer + 2] - 128 ) + 128) | 0); // b
 
-        const colorKey = `R${data[colorPixelPointer + 0]} G${data[colorPixelPointer + 1]} B${data[colorPixelPointer + 2]}`;
+        const colorKey = humanColors ?
+          `R${data[colorPixelPointer + 0]} G${data[colorPixelPointer + 1]} B${data[colorPixelPointer + 2]}` :
+          (
+            data[colorPixelPointer + 0] +
+            data[colorPixelPointer + 1] * Math.pow(2, 8) +
+            data[colorPixelPointer + 2] * Math.pow(2, 16)
+          );
 
         if (!histogram[colorKey]) {
           histogram[colorKey] = 0;
