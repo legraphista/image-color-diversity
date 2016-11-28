@@ -9,10 +9,15 @@ npm i -g image-color-diversity
 
 ## Usage
 ```
-diversity <file> [-c <CONTRAST VALUE> -h]
+diversity [<file>] [-c <CONTRAST VALUE> -h]
 
     -c : Contrast value ranging from -255 to 255
     -h : human readable color index output
+
+Examples:
+
+diversity test.png -h -c 255
+cat test.png | diversity -h -c 255
 ```
 
 ### Example Output

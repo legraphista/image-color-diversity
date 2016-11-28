@@ -6,60 +6,74 @@ const contrastConstant = args.c || 255;
 const humanColors = args.h;
 const sharp = require('sharp');
 
-if (!file) {
-  console.log("Please provide an image file");
-  process.exit(1);
-}
-
 const truncate = (value) => Math.max(Math.min(value, 255), 0);
 
 TIMING && console.time('Loading file');
 
 const getPixelPointer = (raw, info, x, y) => y * info.width * info.channels + x * info.channels;
 
-sharp(file)
-  .raw()
-  .toBuffer((err, data, info) => {
-    TIMING && console.timeEnd('Loading file');
-    TIMING && console.time('Contrast');
-    const h = info.height;
-    const w = info.width;
+const processSharp = (sharpLoad) => {
 
-    const F =
-      (259 * (contrastConstant + 255))
-      /
-      (255 * (259 - contrastConstant));
+  sharpLoad
+    .raw()
+    .toBuffer((err, data, info) => {
+      TIMING && console.timeEnd('Loading file');
+      TIMING && console.time('Contrast');
+      const h = info.height;
+      const w = info.width;
 
-    // contrast
+      const F =
+        (259 * (contrastConstant + 255))
+        /
+        (255 * (259 - contrastConstant));
 
-    const histogram = {};
+      // contrast
 
-    TIMING && console.time('Calculating pixel values');
+      const histogram = {};
 
-    for (let i = 0; i < h; i++) {
-      for (let j = 0; j < w; j++) {
-        const colorPixelPointer = getPixelPointer(data, info, j, i);
-        data[colorPixelPointer + 0] = truncate((F * (data[colorPixelPointer + 0] - 128 ) + 128) | 0); // r
-        data[colorPixelPointer + 1] = truncate((F * (data[colorPixelPointer + 1] - 128 ) + 128) | 0); // g
-        data[colorPixelPointer + 2] = truncate((F * (data[colorPixelPointer + 2] - 128 ) + 128) | 0); // b
+      TIMING && console.time('Calculating pixel values');
 
-        const colorKey = humanColors ?
-          `R${data[colorPixelPointer + 0]} G${data[colorPixelPointer + 1]} B${data[colorPixelPointer + 2]}` :
-          (
-            data[colorPixelPointer + 0] +
-            data[colorPixelPointer + 1] * Math.pow(2, 8) +
-            data[colorPixelPointer + 2] * Math.pow(2, 16)
-          );
+      for (let i = 0; i < h; i++) {
+        for (let j = 0; j < w; j++) {
+          const colorPixelPointer = getPixelPointer(data, info, j, i);
+          data[colorPixelPointer + 0] = truncate((F * (data[colorPixelPointer + 0] - 128 ) + 128) | 0); // r
+          data[colorPixelPointer + 1] = truncate((F * (data[colorPixelPointer + 1] - 128 ) + 128) | 0); // g
+          data[colorPixelPointer + 2] = truncate((F * (data[colorPixelPointer + 2] - 128 ) + 128) | 0); // b
 
-        if (!histogram[colorKey]) {
-          histogram[colorKey] = 0;
+          const colorKey = humanColors ?
+            `R${data[colorPixelPointer + 0]} G${data[colorPixelPointer + 1]} B${data[colorPixelPointer + 2]}` :
+            (
+              data[colorPixelPointer + 0] +
+              data[colorPixelPointer + 1] * Math.pow(2, 8) +
+              data[colorPixelPointer + 2] * Math.pow(2, 16)
+            );
+
+          if (!histogram[colorKey]) {
+            histogram[colorKey] = 0;
+          }
+
+          histogram[colorKey]++;
         }
-
-        histogram[colorKey]++;
       }
-    }
-    TIMING && console.timeEnd('Calculating pixel values');
-    TIMING && console.time('Applying pixel values');
+      TIMING && console.timeEnd('Calculating pixel values');
+      TIMING && console.time('Applying pixel values');
 
-    console.log(Object.keys(histogram).map(key => [key, histogram[key], histogram[key] / (w * h)]).sort((a, b) => b[1] - a[1]));
+      console.log(Object.keys(histogram).map(key => [key, histogram[key], histogram[key] / (w * h)]).sort((a, b) => b[1] - a[1]));
+    });
+};
+
+if (file) {
+  processSharp(sharp(file))
+} else {
+  const stdin = global.process.openStdin();
+
+  let data = new Buffer(0);
+
+  stdin.on('data', function(chunk) {
+    data = Buffer.concat([data, new Buffer(chunk)]);
   });
+
+  stdin.once('end', function() {
+    processSharp(sharp(data));
+  });
+}
