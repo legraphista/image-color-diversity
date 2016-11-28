@@ -58,7 +58,11 @@ const processSharp = (sharpLoad) => {
       TIMING && console.timeEnd('Calculating pixel values');
       TIMING && console.time('Applying pixel values');
 
-      console.log(Object.keys(histogram).map(key => [key, histogram[key], histogram[key] / (w * h)]).sort((a, b) => b[1] - a[1]));
+      console.log(
+        JSON.stringify(
+          Object.keys(histogram).map(key => [key, histogram[key], histogram[key] / (w * h)]).sort((a, b) => b[1] - a[1])
+        )
+      );
     });
 };
 

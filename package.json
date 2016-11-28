@@ -1,6 +1,6 @@
 {
   "name": "image-color-diversity",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Calculates color diversity",
   "main": "index.js",
   "scripts": {},
