@@ -4,6 +4,7 @@ const args = require('minimist')(process.argv.slice(2));
 const file = args._[0];
 const contrastConstant = args.c || 255;
 const humanColors = args.h;
+const outputFile = args.o;
 const sharp = require('sharp');
 
 const truncate = (value) => Math.max(Math.min(value, 255), 0);
@@ -18,7 +19,6 @@ const processSharp = (sharpLoad) => {
     .raw()
     .toBuffer((err, data, info) => {
       TIMING && console.timeEnd('Loading file');
-      TIMING && console.time('Contrast');
       const h = info.height;
       const w = info.width;
 
@@ -29,6 +29,12 @@ const processSharp = (sharpLoad) => {
 
       // contrast
 
+      const colorCache = new Buffer(256);
+
+      for (let i = 0; i < 255; i++) {
+        colorCache[i] = truncate((F * (i - 128 ) + 128) | 0);
+      }
+
       const histogram = {};
 
       TIMING && console.time('Calculating pixel values');
@@ -36,12 +42,12 @@ const processSharp = (sharpLoad) => {
       for (let i = 0; i < h; i++) {
         for (let j = 0; j < w; j++) {
           const colorPixelPointer = getPixelPointer(data, info, j, i);
-          data[colorPixelPointer + 0] = truncate((F * (data[colorPixelPointer + 0] - 128 ) + 128) | 0); // r
-          data[colorPixelPointer + 1] = truncate((F * (data[colorPixelPointer + 1] - 128 ) + 128) | 0); // g
-          data[colorPixelPointer + 2] = truncate((F * (data[colorPixelPointer + 2] - 128 ) + 128) | 0); // b
+          data[colorPixelPointer + 0] = colorCache[data[colorPixelPointer + 0]]; // r
+          data[colorPixelPointer + 1] = colorCache[data[colorPixelPointer + 1]]; // g
+          data[colorPixelPointer + 2] = colorCache[data[colorPixelPointer + 2]]; // b
 
           const colorKey = humanColors ?
-            `R${data[colorPixelPointer + 0]} G${data[colorPixelPointer + 1]} B${data[colorPixelPointer + 2]}` :
+          'R' + data[colorPixelPointer + 0] + ' G' + data[colorPixelPointer + 1] + ' B' + data[colorPixelPointer + 2] :
             (
               data[colorPixelPointer + 0] +
               data[colorPixelPointer + 1] * Math.pow(2, 8) +
@@ -56,13 +62,23 @@ const processSharp = (sharpLoad) => {
         }
       }
       TIMING && console.timeEnd('Calculating pixel values');
-      TIMING && console.time('Applying pixel values');
 
       console.log(
         JSON.stringify(
-          Object.keys(histogram).map(key => [key, histogram[key], histogram[key] / (w * h)]).sort((a, b) => b[1] - a[1])
+          Object.keys(histogram).map(key => [key, histogram[key], histogram[key] / (w * h)]).sort((a, b) => b[1] - a[1]),
+          null,
+          humanColors ? 2 : null
         )
       );
+
+      if (outputFile) {
+        sharp(data, { raw: info }).toFile(outputFile, (err) => {
+          if (err) {
+            console.error(err);
+            process.exit(3);
+          }
+        });
+      }
     });
 };
 
